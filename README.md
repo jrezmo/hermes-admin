@@ -40,7 +40,10 @@ sudo chmod 0755 /usr/local/sbin/hermes-admin
 ### 2. Add the sudoers rule
 
 ```bash
-# Copy the sudoers drop-in (review it first)
+# Edit the file first — replace <your-bot-user> with the Linux user your agent runs as
+nano hermes-admin.sudoers   # or any editor you prefer
+
+# Then copy, lock permissions, and validate
 sudo cp hermes-admin.sudoers /etc/sudoers.d/hermes-admin
 sudo chmod 0440 /etc/sudoers.d/hermes-admin
 

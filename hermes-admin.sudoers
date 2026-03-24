@@ -1,13 +1,12 @@
 # /etc/sudoers.d/hermes-admin
 #
-# Allow user 'j' to run ONLY the hermes-admin helper without a password.
+# Allow the bot user to run ONLY the hermes-admin helper without a password.
 # No other commands get passwordless sudo.
 #
 # Install:
-#   sudo cp hermes-admin.sudoers /etc/sudoers.d/hermes-admin
-#   sudo chmod 0440 /etc/sudoers.d/hermes-admin
-#   sudo visudo -cf /etc/sudoers.d/hermes-admin   # validate syntax
-#
-# Change 'j' to your bot user if different.
+#   1. Replace <your-bot-user> below with the Linux user your agent runs as.
+#   2. sudo cp hermes-admin.sudoers /etc/sudoers.d/hermes-admin
+#   3. sudo chmod 0440 /etc/sudoers.d/hermes-admin
+#   4. sudo visudo -cf /etc/sudoers.d/hermes-admin   # validate syntax before logging out
 
-j ALL=(root) NOPASSWD: /usr/local/sbin/hermes-admin
+<your-bot-user> ALL=(root) NOPASSWD: /usr/local/sbin/hermes-admin
