@@ -18,6 +18,8 @@ A **narrow, root-owned shell script** at `/usr/local/sbin/hermes-admin` with an 
 
 No password in chat. No `NOPASSWD: ALL`. Only the operations you explicitly permit.
 
+> **If you currently have `SUDO_PASSWORD` in your `~/.hermes/.env`, this repo exists to let you delete that line.** Install the helper, confirm it works, then remove the plaintext password. That's the whole point.
+
 ## What's in this repo
 
 ```
@@ -40,10 +42,7 @@ sudo chmod 0755 /usr/local/sbin/hermes-admin
 ### 2. Add the sudoers rule
 
 ```bash
-# Edit the file first — replace <your-bot-user> with the Linux user your agent runs as
-nano hermes-admin.sudoers   # or any editor you prefer
-
-# Then copy, lock permissions, and validate
+# Copy the sudoers drop-in (review it first)
 sudo cp hermes-admin.sudoers /etc/sudoers.d/hermes-admin
 sudo chmod 0440 /etc/sudoers.d/hermes-admin
 
@@ -63,16 +62,35 @@ sudo -n /usr/local/sbin/hermes-admin service-status nginx
 sudo -n /usr/local/sbin/hermes-admin do-something-evil
 ```
 
-### 4. Install the Hermes skill
+### 4. Remove `SUDO_PASSWORD` from your `.env`
+
+Once the helper is working from your shell, remove (or comment out) the `SUDO_PASSWORD` line in `~/.hermes/.env`. This is the point of the whole exercise — no plaintext password on disk.
+
+```bash
+# Edit ~/.hermes/.env and remove or comment out:
+# SUDO_PASSWORD=your_password_here
+```
+
+Restart the gateway after editing `.env`.
+
+### 5. Install the Hermes skill (recommended, not required)
 
 ```bash
 mkdir -p ~/.hermes/skills/sysadmin
 cp SKILL.md ~/.hermes/skills/sysadmin/SKILL.md
 ```
 
-### 5. Test from Telegram/Discord
+**Note:** In testing, current Hermes models discover and use the helper on their own without the skill — it's in a standard sbin path and the sudoers rule makes it work, which is enough for the LLM to figure out. The skill is still recommended because it defines the allowlist explicitly, prevents wasted turns on unsupported subcommands, and provides a safety net for less capable models.
 
-Ask Hermes to check disk usage or restart a service. It should use the helper automatically.
+### 6. Test from Telegram/Discord
+
+Ask Hermes to restart a service or check for system updates. These require root and will confirm the helper is working end-to-end.
+
+Good test commands:
+- "Restart the tailscaled service" — requires root, proves privileged ops work
+- "Check for system updates" — runs `apt update`, requires root
+
+**Note:** Diagnostics like "check disk usage" or "check memory" will work even without the helper, since `df` and `free` don't require root. They're included in the helper for consistency and syslog auditing, but they aren't a valid test of the privileged path.
 
 ## Threat model
 
@@ -108,6 +126,7 @@ After editing, re-test from CLI before relying on it from messaging.
 
 | Approach | Problem |
 |---|---|
+| `SUDO_PASSWORD` in `.env` | Plaintext password on disk, exfiltrable via prompt injection. [See #1583.](https://github.com/NousResearch/hermes-agent/issues/1583) |
 | `NOPASSWD: ALL` | Unrestricted root from chat. Any exploit = full host compromise. |
 | Sudo password in chat | Credential exposure in message history, notifications, caches. |
 | Sudo auth caching (`sudo -v`) | Requires manual SSH login first; expires in minutes. |
